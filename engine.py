@@ -17,8 +17,8 @@ def main():
     libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
     libtcod.console_init_root(constants['screen_width'], constants['screen_height'], constants['window_title'], fullscreen=False, renderer=libtcod.RENDERER_SDL2, vsync=False)
 
-    con = libtcod.console_new(constants['screen_width'], constants['screen_height'])
-    panel = libtcod.console_new(constants['screen_width'], constants['panel_height'])
+    con = libtcod.console.Console(constants['screen_width'], constants['screen_height'])
+    panel = libtcod.console.Console(constants['screen_width'], constants['panel_height'])
 
     player = None
     entities = []
@@ -67,7 +67,7 @@ def main():
                 break
 
         else:
-            libtcod.console_clear(con)
+            con.clear()
             play_game(player, entities, game_map, message_log, game_state, con, panel, constants)
             show_main_menu = True
 
