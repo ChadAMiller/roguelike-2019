@@ -41,7 +41,8 @@ def main():
             main_menu(con, main_menu_background_image, constants['screen_width'], constants['screen_height'])
 
             if show_load_error_message:
-                message_box(con, 'No save game to load', 50, constants['screen_width'], constants['screen_height'])
+                # This a terrible hack and doing this the "right" way will require tinkering with the render functions
+                message_box(con, 'No save game to load', 20, constants['screen_width'], constants['screen_height'] // 2)
 
             libtcod.console_flush()
 
