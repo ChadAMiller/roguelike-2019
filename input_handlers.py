@@ -26,33 +26,33 @@ def handle_player_turn_keys(key):
         return {'fullscreen': True}
 
     # Movement keys
-    if key.vk == libtcod.KEY_UP or key_char == 'k':
+    if key.vk == libtcod.KEY_UP or key_char == 'k' or key.vk == libtcod.KEY_KP8:
         return {'move': (0, -1)}
-    elif key.vk == libtcod.KEY_DOWN or key_char == 'j':
+    elif key.vk == libtcod.KEY_DOWN or key_char == 'j' or key.vk == libtcod.KEY_KP2:
         return {'move': (0, 1)}
-    elif key.vk == libtcod.KEY_LEFT or key_char == 'h':
+    elif key.vk == libtcod.KEY_LEFT or key_char == 'h' or key.vk == libtcod.KEY_KP4:
         return {'move': (-1, 0)}
-    elif key.vk == libtcod.KEY_RIGHT or key_char == 'l':
+    elif key.vk == libtcod.KEY_RIGHT or key_char == 'l' or key.vk == libtcod.KEY_KP6:
         return {'move': (1, 0)}
-    elif key_char == 'y':
+    elif key_char == 'y' or key.vk == libtcod.KEY_KP7:
         return {'move': (-1, -1)}
-    elif key_char == 'u':
+    elif key_char == 'u' or key.vk == libtcod.KEY_KP9:
         return {'move': (1, -1)}
-    elif key_char == 'b':
+    elif key_char == 'b' or key.vk == libtcod.KEY_KP1:
         return {'move': (-1, 1)}
-    elif key_char == 'n':
+    elif key_char == 'n' or key.vk == libtcod.KEY_KP3:
         return {'move': (1, 1)}
-    elif key_char == 'z':
+    elif key_char == 'z' or key.vk == libtcod.KEY_KP5:
         return {'wait': True}
 
-    if key_char == 'g':
+    if key_char == 'g' or key.vk == libtcod.KEY_KP0:
         return {'pickup': True}
-    elif key_char == 'i':
+    elif key_char == 'i' or key.vk == libtcod.KEY_KPDEC:
         return {'show_inventory': True}
     elif key_char == 'd':
         return {'drop_inventory': True}
 
-    elif key.vk == libtcod.KEY_ENTER:
+    elif key.vk == libtcod.KEY_ENTER or key.vk == libtcod.KEY_KPENTER:
         return {'take_stairs': True}
 
     elif key_char == 'c':
