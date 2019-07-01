@@ -9,7 +9,7 @@ class Entity:
     A generic object to represent players, enemies, items, etc.
     '''
 
-    def __init__(self, x, y, char, color, name, blocks=False, render_order=RenderOrder.CORPSE, fighter=None, ai=None, item=None, inventory=None, stairs=None, level=None, equipment=None, equippable=None):
+    def __init__(self, x, y, char, color, name, blocks=False, render_order=RenderOrder.CORPSE):
         self.x = x
         self.y = y
         self.char = char
@@ -17,43 +17,9 @@ class Entity:
         self.name = name
         self.blocks = blocks
         self.render_order = render_order
-        self.fighter = fighter
-        self.ai = ai
-        self.item = item
-        self.inventory = inventory
-        self.stairs = stairs
-        self.level = level
-        self.equipment = equipment
-        self.equippable = equippable
 
-        if self.fighter:
-            self.fighter.owner = self
-
-        if self.ai:
-            self.ai.owner = self
-
-        if self.item:
-            self.item.owner = self
-
-        if self.inventory:
-            self.inventory.owner = self
-
-        if self.stairs:
-            self.stairs.owner = self
-
-        if self.level:
-            self.level.owner = self
-
-        if self.equipment:
-            self.equipment.owner = self
-
-        if self.equippable:
-            self.equippable.owner = self
-
-            if not self.item:
-                item = Item()
-                self.item = item
-                self.item.owner = self
+    def try_component(self, name):
+        return getattr(self, name, None)
 
     def move(self, dx, dy):
         # Move the entity by a given amount

@@ -1,9 +1,11 @@
 import tcod as libtcod
 
+from components.component import Component
 from game_messages import Message
 
-class Fighter:
+class Fighter(Component):
     def __init__(self, hp, defense, power, xp=0):
+        super().__init__("fighter")
         self.base_max_hp = hp
         self.hp = hp
         self.base_defense = defense
@@ -21,7 +23,7 @@ class Fighter:
 
     @property
     def power(self):
-        if self.owner and self.owner.equipment:
+        if self.owner and self.owner.try_component('equipment'):
             bonus = self.owner.equipment.power_bonus
         else:
             bonus = 0
@@ -30,7 +32,7 @@ class Fighter:
 
     @property
     def defense(self):
-        if self.owner and self.owner.equipment:
+        if self.owner and self.owner.try_component('equipment'):
             bonus = self.owner.equipment.defense_bonus
         else:
             bonus = 0

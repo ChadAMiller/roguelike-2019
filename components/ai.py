@@ -2,9 +2,13 @@ import tcod as libtcod
 
 from random import randint
 
+from components.component import Component
 from game_messages import Message
 
-class BasicMonster:
+class BasicMonster(Component):
+    def __init__(self):
+        super().__init__("ai")
+
     def take_turn(self, target, fov_map, game_map, entities):
         results = []
 
@@ -20,8 +24,9 @@ class BasicMonster:
 
         return results
 
-class ConfusedMonster:
+class ConfusedMonster(Component):
     def __init__(self, previous_ai, number_of_turns=10):
+        super().__init__("ai")
         self.previous_ai = previous_ai
         self.number_of_turns = number_of_turns
 

@@ -1,7 +1,9 @@
+from components.component import Component
 from equipment_slots import EquipmentSlots
 
-class Equipment:
+class Equipment(Component):
     def __init__(self, main_hand=None, off_hand=None):
+        super().__init__('equipment')
         self.main_hand = main_hand
         self.off_hand = off_hand
 

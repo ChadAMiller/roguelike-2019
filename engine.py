@@ -142,7 +142,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
         elif pickup and game_state == GameStates.PLAYERS_TURN:
             for entity in entities:
-                if entity.item and entity.x == player.x and entity.y == player.y:
+                if entity.try_component('item') and entity.x == player.x and entity.y == player.y:
                     pickup_results = player.inventory.add_item(entity)
                     player_turn_results.extend(pickup_results)
 
@@ -169,7 +169,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
         if take_stairs and game_state == GameStates.PLAYERS_TURN:
             for entity in entities:
-                if entity.stairs and entity.x == player.x and entity.y == player.y:
+                if entity.try_component('stairs') and entity.x == player.x and entity.y == player.y:
                     entities = game_map.next_floor(player, message_log, constants)
                     fov_map = initialize_fov(game_map)
                     fov_recompute = True
@@ -287,7 +287,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
         if game_state == GameStates.ENEMY_TURN:
             for entity in entities:
-                if entity.ai:
+                if entity.try_component('ai'):
                     enemy_turn_results = entity.ai.take_turn(player, fov_map, game_map, entities)
 
                     for enemy_turn_result in enemy_turn_results:

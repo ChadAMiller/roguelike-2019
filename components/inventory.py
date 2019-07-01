@@ -1,9 +1,11 @@
 import tcod as libtcod
 
+from components.component import Component
 from game_messages import Message
 
-class Inventory:
+class Inventory(Component):
     def __init__(self, capacity):
+        super().__init__('inventory')
         self.capacity = capacity
         self.items = []
 
