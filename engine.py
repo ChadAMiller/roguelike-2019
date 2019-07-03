@@ -173,7 +173,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                     entities = game_map.next_floor(player, message_log, constants)
                     fov_map = initialize_fov(game_map)
                     fov_recompute = True
-                    libtcod.console_clear(con)
+                    con.clear(fg=(63, 127, 63))
                     break
 
             else:
