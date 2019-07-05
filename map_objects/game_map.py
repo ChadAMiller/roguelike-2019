@@ -10,11 +10,12 @@ from components.stairs import Stairs
 
 from entity import Entity
 from game_messages import Message
-from item_functions import cast_confuse, cast_fireball, cast_lightning, heal
+from item_functions import cast_confuse, cast_fireball, cast_lightning, heal, regenerate
 from random_utils import from_dungeon_level, random_choice_from_dict
 from render_functions import RenderOrder
 
-from map_objects.monsters import Orc, Troll, Balrog
+import map_objects.monsters as monsters
+
 from map_objects.rectangle import Rect
 from map_objects.tile import Tile
 
@@ -125,14 +126,16 @@ class GameMap:
         monster_chances = {
                         'orc': 80,
                         'troll': from_dungeon_level([[15, 3], [30, 5], [60, 7]], self.dungeon_level),
-                        'balrog': from_dungeon_level([((i-3)*10, i) for i in range (3, 10)], self.dungeon_level)
+                        'balrog': from_dungeon_level([((i-3)*10, i) for i in range (3, 10)], self.dungeon_level),
+                        'wraith': 5
                         }
-        item_chances = {'healing_potion': 35,
+        item_chances = {'healing_potion': 5,
                         'sword': from_dungeon_level([[5, 4]], self.dungeon_level),
                         'shield': from_dungeon_level([[15, 8]], self.dungeon_level),
                         'lightning_scroll': from_dungeon_level([[25, 4]], self.dungeon_level),
                         'fireball_scroll': from_dungeon_level([[25, 6]], self.dungeon_level),
                         'confusion_scroll': from_dungeon_level([[10, 2]], self.dungeon_level),
+                        'rejuvenation_potion': 35,
                         }
 
         for _ in range(number_of_monsters):
@@ -144,11 +147,13 @@ class GameMap:
                 monster_choice = random_choice_from_dict(monster_chances)
 
                 if monster_choice == 'orc':
-                    monster = Orc(x, y)
+                    monster = monsters.Orc(x, y)
                 elif monster_choice == 'balrog':
-                    monster = Balrog(x, y)
+                    monster = monsters.Balrog(x, y)
+                elif monster_choice == 'wraith':
+                    monster = monsters.Wraith(x, y)
                 else:
-                    monster = Troll(x, y)
+                    monster = monsters.Troll(x, y)
                 entities.append(monster)
 
         for _ in range(number_of_items):
@@ -162,6 +167,9 @@ class GameMap:
                     item_component = Item(use_function=heal, amount=40)
                     item = Entity(x, y, '!', libtcod.violet, 'Healing Potion', render_order=RenderOrder.ITEM)
                     item_component.add_to_entity(item)
+                elif item_choice == 'rejuvenation_potion':
+                    item = Entity(x, y, '!', libtcod.desaturated_blue, "Potion of Rejuvenation", render_order=RenderOrder.ITEM)
+                    Item(use_function=regenerate, name="Potion of Rejuvenation", amount=10, duration=4).add_to_entity(item)
                 elif item_choice == 'sword':
                     equippable_component = Equippable(EquipmentSlots.MAIN_HAND, power_bonus=3)
                     item = Entity(x, y, '/', libtcod.sky, 'Sword')

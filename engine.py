@@ -285,7 +285,17 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
                 game_state = GameStates.ENEMY_TURN
 
-        if game_state == GameStates.ENEMY_TURN:
+        if game_state == GameStates.ENEMY_TURN:            
+            # I don't love this hack. May have to add a new game state for status effects.
+            status_effect_results = player.status_effects.process_statuses()
+            for result in status_effect_results:
+                if 'message' in result:
+                    message_log.add_message(result['message'])
+                if 'dead' in result:
+                    message, game_state = kill_player(player)
+                    message_log.add_message(message)
+                    continue # jumps back to main game loop, skipping the ai processing
+            
             for entity in entities:
                 if entity.try_component('ai'):
                     enemy_turn_results = entity.ai.take_turn(player, fov_map, game_map, entities)

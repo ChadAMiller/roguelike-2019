@@ -1,5 +1,7 @@
 import tcod as libtcod
 
+import components.status_effects as status_effects
+
 from components.ai import ConfusedMonster
 from game_messages import Message
 
@@ -91,5 +93,19 @@ def cast_confuse(*args, **kwargs):
             break
     else:
         results.append({'consumed': False, 'message': Message('There is no targetable enemy at that location', libtcod.yellow)})
+
+    return results
+
+def regenerate(*args, **kwargs):
+    entity = args[0]
+    name = kwargs.get('name')
+    amount = kwargs.get('amount')
+    duration = kwargs.get('duration')
+
+    results = []
+
+    results.append({'consumed': True, 'message': Message('You feel a warmth pass over you.', libtcod.green)})
+
+    entity.status_effects.add_status(status_effects.HealOverTime(name, amount, duration))
 
     return results

@@ -5,6 +5,8 @@ from random import randint
 from components.component import Component
 from game_messages import Message
 
+from components import status_effects
+
 class BasicMonster(Component):
     def __init__(self):
         super().__init__("ai")
@@ -48,4 +50,25 @@ class ConfusedMonster(Component):
 
         return results
 
+class WraithMonster(Component):
+    def __init__(self):
+        super().__init__('ai')
+        self.player_spotted = False
 
+    def take_turn(self, target, fov_map, game_map, entities):
+        results = []
+        monster = self.owner
+
+        # Return without doing anything until it spots the player for the first time
+        if not self.player_spotted and not libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
+            return results
+
+        self.player_spotted = True
+        self.owner.move_towards(target.x, target.y, game_map, entities, ignore_blocking=True)
+
+        if monster.distance_to(target) == 0:
+            results.append({'message': Message("The wraith has haunted you!")})
+            target.status_effects.add_status(status_effects.DamageOverTime('Haunted by Wraith', 5, 10))
+            results.extend(monster.fighter.take_damage(1))
+        
+        return results

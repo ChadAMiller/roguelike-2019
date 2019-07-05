@@ -6,6 +6,7 @@ from game_states import GameStates
 from menus import character_screen, inventory_menu, level_up_menu
 
 class RenderOrder(Enum):
+    INVISIBLE = auto()
     STAIRS = auto()
     CORPSE = auto()
     ITEM = auto()
@@ -54,7 +55,8 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
                         libtcod.console_set_char_background(con, x, y, colors.get('dark_ground'), libtcod.BKGND_SET)
 
     # Draw all entities in the list
-    entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
+    visible_entities = [e for e in entities if e.render_order != RenderOrder.INVISIBLE]
+    entities_in_render_order = sorted(visible_entities, key=lambda x: x.render_order.value)
 
     for entity in entities_in_render_order:
         draw_entity(con, entity, fov_map, game_map)

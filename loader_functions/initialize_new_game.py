@@ -5,6 +5,7 @@ from components.equippable import Equippable
 from components.fighter import Fighter
 from components.inventory import Inventory
 from components.level import Level
+from components.status_effects import StatusEffects
 
 from entity import Entity
 from equipment_slots import EquipmentSlots
@@ -74,22 +75,26 @@ def get_constants():
     return constants
 
 def get_game_variables(constants):
-    fighter_component = Fighter(hp=100, defense=2, power=2)
-    inventory_component = Inventory(26)
-    level_component = Level()
-    equipment_component = Equipment()
     player = Entity(0, 0, '@', libtcod.white, 'Player', blocks=True, render_order=RenderOrder.ACTOR)
-    fighter_component.add_to_entity(player)
+    Fighter(hp=100, defense=2, power=2).add_to_entity(player)
+    Level().add_to_entity(player)
+
+    inventory_component = Inventory(26)
     inventory_component.add_to_entity(player)
-    level_component.add_to_entity(player)
+    
+    equipment_component = Equipment()
     equipment_component.add_to_entity(player)
+        
     entities = [player]
 
-    equippable_component = Equippable(EquipmentSlots.MAIN_HAND, power_bonus=2)
     dagger = Entity(0, 0, '-', libtcod.sky, 'Dagger')
-    equippable_component.add_to_entity(dagger)
+    equippable_component = Equippable(EquipmentSlots.MAIN_HAND, power_bonus=2)
+    equippable_component.add_to_entity(dagger)    
+        
     inventory_component.add_item(dagger)
     equipment_component.toggle_equip(dagger)
+
+    StatusEffects().add_to_entity(player)
 
     game_map = GameMap(constants['map_width'], constants['map_height'])
     game_map.make_map(constants['max_rooms'], constants['room_min_size'], constants['room_max_size'], constants['map_width'], constants['map_height'], player, entities)

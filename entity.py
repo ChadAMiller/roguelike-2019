@@ -26,15 +26,15 @@ class Entity:
         self.x += dx
         self.y += dy
 
-    def move_towards(self, target_x, target_y, game_map, entities):
+    def move_towards(self, target_x, target_y, game_map, entities, ignore_blocking=False):
         dx = target_x - self.x
         dy = target_y - self.y
         distance = math.sqrt(dx ** 2 + dy ** 2)
 
-        dx = int(round(dx / distance))
-        dy = int(round(dy / distance))
+        dx = int(round(dx / distance)) if distance != 0 else 0
+        dy = int(round(dy / distance)) if distance != 0 else 0
 
-        if not (game_map.is_blocked(self.x + dx, self.y + dy) or get_blocking_entities_at_location(entities, self.x + dx, self.y + dy)):
+        if ignore_blocking or not (game_map.is_blocked(self.x + dx, self.y + dy) or get_blocking_entities_at_location(entities, self.x + dx, self.y + dy)):
             self.move(dx, dy)
 
     def move_astar(self, target, entities, game_map):
