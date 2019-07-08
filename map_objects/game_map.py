@@ -119,18 +119,19 @@ class GameMap:
         number_of_items = randint(0, max_items_per_room)
 
         monster_chances = {
-                        'orc': 80,
-                        'troll': from_dungeon_level([[15, 3], [30, 5], [60, 7]], self.dungeon_level),
-                        'balrog': from_dungeon_level([((i-3)*10, i) for i in range (3, 10)], self.dungeon_level),
-                        'wraith': 5
+                        monsters.Orc: 80,
+                        monsters.Troll: from_dungeon_level([[15, 3], [30, 5], [60, 7]], self.dungeon_level),
+                        monsters.Balrog: from_dungeon_level([((i-3)*10, i) for i in range (3, 10)], self.dungeon_level),
+                        monsters.Wraith: 5
                         }
-        item_chances = {'healing_potion': 5,
-                        'sword': from_dungeon_level([[5, 4]], self.dungeon_level),
-                        'shield': from_dungeon_level([[15, 8]], self.dungeon_level),
-                        'lightning_scroll': from_dungeon_level([[25, 4]], self.dungeon_level),
-                        'fireball_scroll': from_dungeon_level([[25, 6]], self.dungeon_level),
-                        'confusion_scroll': from_dungeon_level([[10, 2]], self.dungeon_level),
-                        'rejuvenation_potion': 35,
+        item_chances = {
+                        items.HealingPotion: 5,
+                        items.Sword: from_dungeon_level([[5, 4]], self.dungeon_level),
+                        items.Shield: from_dungeon_level([[15, 8]], self.dungeon_level),
+                        items.LightningScroll: from_dungeon_level([[25, 4]], self.dungeon_level),
+                        items.FireballScroll: from_dungeon_level([[25, 6]], self.dungeon_level),
+                        items.ConfusionScroll: from_dungeon_level([[10, 2]], self.dungeon_level),
+                        items.RejuvenationPotion: 35,
                         }
 
         for _ in range(number_of_monsters):
@@ -140,16 +141,7 @@ class GameMap:
 
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
                 monster_choice = random_choice_from_dict(monster_chances)
-
-                if monster_choice == 'orc':
-                    monster = monsters.Orc(x, y)
-                elif monster_choice == 'balrog':
-                    monster = monsters.Balrog(x, y)
-                elif monster_choice == 'wraith':
-                    monster = monsters.Wraith(x, y)
-                else:
-                    monster = monsters.Troll(x, y)
-                entities.append(monster)
+                entities.append(monster_choice(x, y))
 
         for _ in range(number_of_items):
             x = randint(room.x1 + 1, room.x2 - 1)
@@ -157,23 +149,7 @@ class GameMap:
 
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
                 item_choice = random_choice_from_dict(item_chances)
-
-                if item_choice == 'healing_potion':
-                    item = items.HealingPotion(x, y)
-                elif item_choice == 'rejuvenation_potion':
-                    item = items.RejuvenationPotion(x, y)
-                elif item_choice == 'sword':
-                    item = items.Sword(x, y)
-                elif item_choice == 'shield':
-                    item = items.Shield(x, y)
-                elif item_choice == 'fireball_scroll':
-                    item = items.FireballScroll(x, y)
-                elif item_choice == 'lightning_scroll':
-                    item = items.LightningScroll(x, y)
-                else:
-                    item = items.ConfusionScroll(x, y)
-            
-                entities.append(item)
+                entities.append(item_choice(x, y))
 
     def is_blocked(self, x, y):
         return self.tiles[x][y].blocked
