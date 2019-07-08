@@ -66,13 +66,17 @@ def character_screen(player, character_screen_width, character_screen_height, sc
     window = libtcod.console_new(character_screen_width, character_screen_height)
 
     libtcod.console_set_default_foreground(window, libtcod.white)
-    character_sheet = ('Character Information',
+    character_sheet = ['Character Information',
                         'Level: {0}'.format(player.level.current_level),
                         'Experience: {0}'.format(player.level.current_xp),
                         'Experience to Level: {0}'.format(player.level.experience_to_next_level),
                         'Maximum HP: {0}'.format(player.fighter.max_hp),
                         'Attack: {0}'.format(player.fighter.power),
-                        'Defense: {0}'.format(player.fighter.defense))
+                        'Defense: {0}'.format(player.fighter.defense),                        
+                    ]
+    if player.status_effects.active_statuses:
+        character_sheet.append("Active Status Effects:")
+        character_sheet.extend("{} ({} turns left)".format(name, status.duration) for name, status in player.status_effects.active_statuses.items())
 
     for i, s in enumerate(character_sheet):
         libtcod.console_print_rect_ex(window, 0, i, character_screen_width, character_screen_height, libtcod.BKGND_NONE, libtcod.LEFT, s)
