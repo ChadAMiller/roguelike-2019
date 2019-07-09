@@ -120,9 +120,10 @@ class GameMap:
 
         monster_chances = {
                         monsters.Orc: 80,
+                        monsters.Snake: 20,
                         monsters.Troll: from_dungeon_level([[15, 3], [30, 5], [60, 7]], self.dungeon_level),
                         monsters.Balrog: from_dungeon_level([((i-3)*10, i) for i in range (3, 10)], self.dungeon_level),
-                        monsters.Wraith: 5
+                        monsters.Wraith: 5,
                         }
         item_chances = {
                         items.HealingPotion: 5,
@@ -166,3 +167,6 @@ class GameMap:
         message_log.add_message(Message('You take a moment to rest, and recover your strength.', libtcod.light_violet))
 
         return entities
+
+    def find_exit(self, entities):
+        return [e for e in entities if e.try_component('stairs')][0]

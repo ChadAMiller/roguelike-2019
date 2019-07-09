@@ -24,11 +24,12 @@ class StatusEffects(Component):
 
         to_delete = set()
         for name, status in self.active_statuses.items():
-            if status.duration == 0:
-                to_delete.add(name)
-            else:
+            if status.duration >= 1:
                 status.duration -= 1
                 results.extend(status.effect(self.owner))
+
+            if status.duration == 0:
+                to_delete.add(name)
 
         for name in to_delete:
             del self.active_statuses[name]

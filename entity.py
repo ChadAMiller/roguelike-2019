@@ -1,5 +1,6 @@
 import tcod as libtcod
 import math
+import random
 
 from components.item import Item
 from render_functions import RenderOrder
@@ -37,7 +38,18 @@ class Entity:
         if ignore_blocking or not (game_map.is_blocked(self.x + dx, self.y + dy) or get_blocking_entities_at_location(entities, self.x + dx, self.y + dy)):
             self.move(dx, dy)
 
-    def move_astar(self, target, entities, game_map):
+    def flee(self, game_map, entities, ignore_blocking=False):
+        # attempt to flee in a random direction
+        directions = [(i,j) for i in range(-1, 2) for j in range(-1, 2)]
+        directions.remove((0,0)) # don't want to stand still except as a last resort
+        random.shuffle(directions)
+
+        for dx,dy in directions:
+            if ignore_blocking or not (game_map.is_blocked(self.x + dx, self.y + dy) or get_blocking_entities_at_location(entities, self.x + dx, self.y + dy)):
+                self.move(dx, dy)
+                break
+
+    def move_astar(self, target, entities, game_map, max_path=25):
         # Create a FOV map that has the dimensions of the map
         fov = libtcod.map_new(game_map.width, game_map.height)
 
@@ -64,7 +76,7 @@ class Entity:
         # Check if the path exists, and in this case, also the path is shorter than 25 tiles
         # The path size matters if you want the monster to use alternative longer paths (for example through other rooms) if for example the player is in a corridor
         # It makes sense to keep path size relatively low to keep the monsters from running around the map if there's an alternative path really far away
-        if not libtcod.path_is_empty(my_path) and libtcod.path_size(my_path) < 25:
+        if not libtcod.path_is_empty(my_path) and (not max_path or libtcod.path_size(my_path) < max_path):
             # Find the next coordinates in the computed full path
             x, y = libtcod.path_walk(my_path, True)
             if x or y:

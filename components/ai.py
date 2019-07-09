@@ -68,7 +68,36 @@ class WraithMonster(Component):
 
         if monster.distance_to(target) == 0:
             results.append({'message': Message("The wraith has haunted you!")})
-            target.status_effects.add_status(status_effects.DamageOverTime('Haunted by Wraith', 5, 10))
+            target.status_effects.add_status(status_effects.DamageOverTime('Haunted', 5, 10))
             results.extend(monster.fighter.take_damage(1))
         
+        return results
+
+class SnakeMonster(Component):
+    def __init__(self):
+        super().__init__("ai")
+
+    def take_turn(self, target, fov_map, game_map, entities):
+        results = []
+
+        monster = self.owner
+        if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
+
+            if 'Poisoned' in target.status_effects.active_statuses:
+                # run for the exit if player is already poisoned, or in a random direction if path to the exit is blocked
+                current_position = monster.x, monster.y
+                stairs = game_map.find_exit(entities)
+                monster.move_astar(stairs, entities, game_map, max_path=None)
+                if current_position == (monster.x, monster.y):
+                    monster.flee(game_map, entities)
+            
+            elif monster.distance_to(target) >= 2:
+                monster.move_astar(target, entities, game_map)
+
+            elif target.fighter.hp > 0:
+                attack_results = monster.fighter.attack(target)
+                results.append({'message': Message("The snake has poisoned you!")})
+                target.status_effects.add_status(status_effects.DamageOverTime('Poisoned', 2, 10))
+                results.extend(attack_results)
+
         return results
