@@ -27,7 +27,7 @@ class Entity:
         self.x += dx
         self.y += dy
 
-    def move_towards(self, target_x, target_y, game_map, entities, ignore_blocking=False):
+    def move_towards(self, target_x, target_y, game_map, ignore_blocking=False):
         dx = target_x - self.x
         dy = target_y - self.y
         distance = math.sqrt(dx ** 2 + dy ** 2)
@@ -35,21 +35,21 @@ class Entity:
         dx = int(round(dx / distance)) if distance != 0 else 0
         dy = int(round(dy / distance)) if distance != 0 else 0
 
-        if ignore_blocking or not (game_map.is_blocked(self.x + dx, self.y + dy) or get_blocking_entities_at_location(entities, self.x + dx, self.y + dy)):
+        if ignore_blocking or not (game_map.is_blocked(self.x + dx, self.y + dy) or get_blocking_entities_at_location(game_map.entities, self.x + dx, self.y + dy)):
             self.move(dx, dy)
 
-    def flee(self, game_map, entities, ignore_blocking=False):
+    def flee(self, game_map, ignore_blocking=False):
         # attempt to flee in a random direction
         directions = [(i,j) for i in range(-1, 2) for j in range(-1, 2)]
         directions.remove((0,0)) # don't want to stand still except as a last resort
         random.shuffle(directions)
 
         for dx,dy in directions:
-            if ignore_blocking or not (game_map.is_blocked(self.x + dx, self.y + dy) or get_blocking_entities_at_location(entities, self.x + dx, self.y + dy)):
+            if ignore_blocking or not (game_map.is_blocked(self.x + dx, self.y + dy) or get_blocking_entities_at_location(game_map.entities, self.x + dx, self.y + dy)):
                 self.move(dx, dy)
                 break
 
-    def move_astar(self, target, entities, game_map, max_path=25):
+    def move_astar(self, target, game_map, max_path=25):
         # Create a FOV map that has the dimensions of the map
         fov = libtcod.map_new(game_map.width, game_map.height)
 
@@ -61,7 +61,7 @@ class Entity:
         # Scan all the objects to see if there are objects that must be navigated around
         # Check also that the object isn't self or the target (so that the start and the end points are free)
         # The AI class handles the situation if self is next to the target so it will not use this A* function anyway
-        for entity in entities:
+        for entity in game_map.entities:
             if entity.blocks and entity != self and entity != target:
                 # Set the tile as a wall so it must be navigated around
                 libtcod.map_set_properties(fov, entity.x, entity.y, True, False)
@@ -86,7 +86,7 @@ class Entity:
             else:
                 # Keep the old move function as a backup so that if there are no paths (for example another monster blocks a corridor)
                 # it will still try to move towards the player (closer to the corridor opening)
-                self.move_towards(target.x, target.y, game_map, entities)
+                self.move_towards(target.x, target.y, game_map)
 
             # Delete the path to free memory
             libtcod.path_delete(my_path)

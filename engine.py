@@ -21,7 +21,6 @@ def main():
     panel = libtcod.console.Console(constants['screen_width'], constants['panel_height'])
 
     player = None
-    entities = []
     game_map = None
     message_log = None
     game_state = None
@@ -55,12 +54,12 @@ def main():
             if show_load_error_message and (new_game or load_saved_game or exit_game):
                 show_load_error_message = False
             elif new_game:
-                player, entities, game_map, message_log, game_state = get_game_variables(constants)
+                player, game_map, message_log, game_state = get_game_variables(constants)
                 game_state = GameStates.PLAYERS_TURN
                 show_main_menu = False
             elif load_saved_game:
                 try:
-                    player, entities, game_map, message_log, game_state = load_game()
+                    player, game_map, message_log, game_state = load_game()
                     show_main_menu = False
                 except FileNotFoundError:
                     show_load_error_message = True
@@ -68,16 +67,16 @@ def main():
                 break
 
         else:
-            con.clear()
-            play_game(player, entities, game_map, message_log, game_state, con, panel, constants)
+            con.clear(fg=(191, 0, 0))
+            play_game(player, game_map, message_log, game_state, con, panel, constants)
             show_main_menu = True
 
 
-def play_game(player, entities, game_map, message_log, game_state, con, panel, constants):
+def play_game(player, world, message_log, game_state, con, panel, constants):
 
     fov_recompute = True
 
-    fov_map = initialize_fov(game_map)
+    fov_map = initialize_fov(world.current_floor)
 
     key = libtcod.Key()
     mouse = libtcod.Mouse()
@@ -92,12 +91,12 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         if fov_recompute:
             recompute_fov(fov_map, player.x, player.y, constants['fov_radius'], constants['fov_light_walls'], constants['fov_algorithm'])
 
-        render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, constants['screen_width'], constants['screen_height'], constants['bar_width'], constants['panel_height'], constants['panel_y'], mouse, constants['colors'], game_state)
+        render_all(con, panel, player, world.current_floor, fov_map, fov_recompute, message_log, constants['screen_width'], constants['screen_height'], constants['bar_width'], constants['panel_height'], constants['panel_y'], mouse, constants['colors'], game_state)
         fov_recompute = False
 
         libtcod.console_flush()
 
-        clear_all(con, entities)
+        clear_all(con, world.current_floor.entities)
 
         action = handle_keys(key, game_state)
         mouse_action = handle_mouse(mouse)
@@ -124,8 +123,8 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             destination_x = player.x + dx
             destination_y = player.y + dy
 
-            if not game_map.is_blocked(destination_x, destination_y):
-                target = get_blocking_entities_at_location(entities, destination_x, destination_y)
+            if not world.current_floor.is_blocked(destination_x, destination_y):
+                target = get_blocking_entities_at_location(world.current_floor.entities, destination_x, destination_y)
 
                 if target:
                     attack_results = player.fighter.attack(target)
@@ -141,7 +140,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             game_state = GameStates.ENEMY_TURN
 
         elif pickup and game_state == GameStates.PLAYERS_TURN:
-            for entity in entities:
+            for entity in world.current_floor.entities:
                 if entity.try_component('item') and entity.x == player.x and entity.y == player.y:
                     pickup_results = player.inventory.add_item(entity)
                     player_turn_results.extend(pickup_results)
@@ -163,15 +162,15 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             item = player.inventory.items[inventory_index]
             
             if game_state == GameStates.SHOW_INVENTORY:
-                player_turn_results.extend(player.inventory.use(item, entities=entities, fov_map=fov_map))
+                player_turn_results.extend(player.inventory.use(item, entities=world.current_floor.entities, fov_map=fov_map))
             elif game_state == GameStates.DROP_INVENTORY:
                 player_turn_results.extend(player.inventory.drop_item(item))
 
         if take_stairs and game_state == GameStates.PLAYERS_TURN:
-            for entity in entities:
+            for entity in world.current_floor.entities:
                 if entity.try_component('stairs') and entity.x == player.x and entity.y == player.y:
-                    entities = game_map.next_floor(player, message_log, constants)
-                    fov_map = initialize_fov(game_map)
+                    world.change_room(player, message_log)
+                    fov_map = initialize_fov(world.current_floor)
                     fov_recompute = True
                     con.clear(fg=(63, 127, 63))
                     break
@@ -198,7 +197,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             if left_click:
                 target_x, target_y = left_click
 
-                item_use_results = player.inventory.use(targeting_item, entities=entities, fov_map=fov_map, target_x=target_x, target_y=target_y)
+                item_use_results = player.inventory.use(targeting_item, entities=world.current_floor.entities, fov_map=fov_map, target_x=target_x, target_y=target_y)
                 player_turn_results.extend(item_use_results)
             elif right_click:
                 player_turn_results.append({'targeting_cancelled': True})
@@ -209,7 +208,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             elif game_state == GameStates.TARGETING:
                 player_turn_results.append({'targeting_cancelled': True})
             else:
-                save_game(player, entities, game_map, message_log, game_state)
+                save_game(player, world, message_log, game_state)
                 return True
 
         if fullscreen:
@@ -238,7 +237,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                 message_log.add_message(message)
 
             if item_added:
-                entities.remove(item_added)
+                world.current_floor.entities.remove(item_added)
 
                 game_state = GameStates.ENEMY_TURN
 
@@ -267,7 +266,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                     game_state = GameStates.LEVEL_UP
 
             if item_dropped:
-                entities.append(item_dropped)
+                world.current_floor.entities.append(item_dropped)
                 game_state = GameStates.ENEMY_TURN
 
             if equip:
@@ -296,9 +295,9 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                     message_log.add_message(message)
                     continue # jumps back to main game loop, skipping the ai processing
             
-            for entity in entities:
+            for entity in world.current_floor.entities:
                 if entity.try_component('ai'):
-                    enemy_turn_results = entity.ai.take_turn(player, fov_map, game_map, entities)
+                    enemy_turn_results = entity.ai.take_turn(player, fov_map, world.current_floor)
 
                     for enemy_turn_result in enemy_turn_results:
                         message = enemy_turn_result.get('message')

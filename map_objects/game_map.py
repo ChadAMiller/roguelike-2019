@@ -14,33 +14,55 @@ import map_objects.monsters as monsters
 from map_objects.rectangle import Rect
 from map_objects.tile import Tile
 
-class GameMap:
-    def __init__(self, width, height, dungeon_level=1):
-        self.width = width
-        self.height = height
-        self.tiles = self.initialize_tiles()
+DEFAULTS = {
+    'room_max_size': 10,
+    'room_min_size': 6,
+    'max_rooms': 30,
+}
 
+def get_or_default(d, k):
+    return d.get(k, DEFAULTS[k])
+
+class World:
+    def __init__(self, player, map_width, map_height):
+        self.current_floor = DungeonFloor(player, map_width, map_height, 1)
+
+    def change_room(self, player, message_log):
+        self.current_floor = self.current_floor.next_floor(player, message_log)
+
+class DungeonFloor:
+    def __init__(self, player, map_width, map_height, dungeon_level, **kwargs):
+
+        # This could be turned into a for loop but not without confusing the linter
+        self.room_max_size = get_or_default(kwargs, 'room_max_size')
+        self.room_min_size = get_or_default(kwargs, 'room_min_size')
+        self.max_rooms = get_or_default(kwargs, 'max_rooms')
+
+        self.entities = [player]
+        self.width = map_width
+        self.height = map_height
         self.dungeon_level = dungeon_level
+        self.name = "Dungeon Floor: {}".format(dungeon_level)
+        self.initialize_tiles()
+        self.make_map(player)
 
     def initialize_tiles(self):
-        tiles = [[Tile(True) for y in range(self.height)] for x in range(self.width)]
+        self.tiles = [[Tile(True) for y in range(self.height)] for x in range(self.width)]
 
-        return tiles
-
-    def make_map(self, max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities):
+    def make_map(self, player):
         rooms = []
         num_rooms = 0
 
         center_of_last_room_x = None
         center_of_last_room_y = None
 
-        for _ in range(max_rooms):
+        for _ in range(self.max_rooms):
             # random width and height
-            w = randint(room_min_size, room_max_size)
-            h = randint(room_min_size, room_max_size)
+            w = randint(self.room_min_size, self.room_max_size)
+            h = randint(self.room_min_size, self.room_max_size)
             # random position without going out of the boundaries of the map
-            x = randint(0, map_width - w - 1)
-            y = randint(0, map_height - h - 1)
+            x = randint(0, self.width - w - 1)
+            y = randint(0, self.height - h - 1)
 
             # "Rect" class makes rectangles easier to work with
             new_room = Rect(x, y, w, h)
@@ -62,11 +84,11 @@ class GameMap:
                 center_of_last_room_y = new_y
 
                 if num_rooms == 0:
-                    # this is the first room, where the player starts at
+                    # this is the first room, where the player starts
                     player.x = new_x
                     player.y = new_y
                 else:
-                    # all rooms after the first:
+                    # all rooms after the first
                     # connect it to the previous room with a tunnel
 
                     # center coordinates of previous room
@@ -82,8 +104,8 @@ class GameMap:
                         self.create_v_tunnel(prev_y, new_y, prev_x)
                         self.create_h_tunnel(prev_x, new_x, new_y)
 
-                self.place_entities(new_room, entities)
-                
+                self.place_entities(new_room)
+
                 # finally, append the new room to the list
                 rooms.append(new_room)
                 num_rooms += 1
@@ -91,7 +113,7 @@ class GameMap:
         stairs_component = Stairs(self.dungeon_level + 1)
         down_stairs = Entity(center_of_last_room_x, center_of_last_room_y, '>', libtcod.white, 'Stairs', render_order=RenderOrder.STAIRS)
         stairs_component.add_to_entity(down_stairs)
-        entities.append(down_stairs)
+        self.entities.append(down_stairs)
 
     def create_room(self, room):
         # go through the tiles in the rectangle and make them passable
@@ -110,10 +132,10 @@ class GameMap:
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
 
-    def place_entities(self, room, entities):
+    def place_entities(self, room):
         # Get a random number of monsters
         max_monsters_per_room = from_dungeon_level([[2,1],[3,4],[5,6]], self.dungeon_level)
-        max_items_per_room = from_dungeon_level([[1, 1],[2, 4]], self.dungeon_level)
+        max_items_per_room = from_dungeon_level([[1,1],[2,4]], self.dungeon_level)
 
         number_of_monsters = randint(0, max_monsters_per_room)
         number_of_items = randint(0, max_items_per_room)
@@ -140,33 +162,25 @@ class GameMap:
             x = randint(room.x1 + 1, room.x2 - 1)
             y = randint(room.y1 + 1, room.y2 - 1)
 
-            if not any([entity for entity in entities if entity.x == x and entity.y == y]):
+            if not any([entity for entity in self.entities if entity.x == x and entity.y == y]):
                 monster_choice = random_choice_from_dict(monster_chances)
-                entities.append(monster_choice(x, y))
+                self.entities.append(monster_choice(x, y))
 
         for _ in range(number_of_items):
             x = randint(room.x1 + 1, room.x2 - 1)
             y = randint(room.y1 + 1, room.y2 - 1)
 
-            if not any([entity for entity in entities if entity.x == x and entity.y == y]):
+            if not any([entity for entity in self.entities if entity.x == x and entity.y == y]):
                 item_choice = random_choice_from_dict(item_chances)
-                entities.append(item_choice(x, y))
+                self.entities.append(item_choice(x, y))
 
     def is_blocked(self, x, y):
         return self.tiles[x][y].blocked
 
-    def next_floor(self, player, message_log, constants):
-        self.dungeon_level += 1
-        entities = [player]
+    def find_exit(self):
+        return [e for e in self.entities if e.try_component('stairs')][0]
 
-        self.tiles = self.initialize_tiles()
-        self.make_map(constants['max_rooms'], constants['room_min_size'], constants['room_max_size'], constants['map_width'], constants['map_height'], player, entities)
-
+    def next_floor(self, player, message_log):
         player.fighter.heal(player.fighter.max_hp // 2)
-
-        message_log.add_message(Message('You take a moment to rest, and recover your strength.', libtcod.light_violet))
-
-        return entities
-
-    def find_exit(self, entities):
-        return [e for e in entities if e.try_component('stairs')][0]
+        message_log.add_message(Message('You take a moment to rest, and recover your strength.'))
+        return DungeonFloor(player, self.width, self.height, self.dungeon_level + 1, room_max_size=self.room_max_size, room_min_size=self.room_min_size, max_rooms=self.max_rooms)

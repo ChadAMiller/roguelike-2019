@@ -11,14 +11,14 @@ class BasicMonster(Component):
     def __init__(self):
         super().__init__("ai")
 
-    def take_turn(self, target, fov_map, game_map, entities):
+    def take_turn(self, target, fov_map, game_map):
         results = []
 
         monster = self.owner
         if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
 
             if monster.distance_to(target) >= 2:
-                monster.move_astar(target, entities, game_map)
+                monster.move_astar(target, game_map)
 
             elif target.fighter.hp > 0:
                 attack_results = monster.fighter.attack(target)
@@ -32,7 +32,7 @@ class ConfusedMonster(Component):
         self.previous_ai = previous_ai
         self.number_of_turns = number_of_turns
 
-    def take_turn(self, target, fov_map, game_map, entities):
+    def take_turn(self, target, fov_map, game_map):
         results = []
 
         if self.number_of_turns > 0:
@@ -40,7 +40,7 @@ class ConfusedMonster(Component):
             random_y = self.owner.y + randint(0, 2) - 1
 
             if random_x != self.owner.x and random_y != self.owner.y:
-                self.owner.move_towards(random_x, random_y, game_map, entities)
+                self.owner.move_towards(random_x, random_y, game_map)
 
             self.number_of_turns -= 1
 
@@ -55,7 +55,7 @@ class WraithMonster(Component):
         super().__init__('ai')
         self.player_spotted = False
 
-    def take_turn(self, target, fov_map, game_map, entities):
+    def take_turn(self, target, fov_map, game_map):
         results = []
         monster = self.owner
 
@@ -64,7 +64,7 @@ class WraithMonster(Component):
             return results
 
         self.player_spotted = True
-        self.owner.move_towards(target.x, target.y, game_map, entities, ignore_blocking=True)
+        self.owner.move_towards(target.x, target.y, game_map, ignore_blocking=True)
 
         if monster.distance_to(target) == 0:
             results.append({'message': Message("The wraith has haunted you!")})
@@ -77,7 +77,7 @@ class SnakeMonster(Component):
     def __init__(self):
         super().__init__("ai")
 
-    def take_turn(self, target, fov_map, game_map, entities):
+    def take_turn(self, target, fov_map, game_map):
         results = []
 
         monster = self.owner
@@ -86,13 +86,13 @@ class SnakeMonster(Component):
             if 'Poisoned' in target.status_effects.active_statuses:
                 # run for the exit if player is already poisoned, or in a random direction if path to the exit is blocked
                 current_position = monster.x, monster.y
-                stairs = game_map.find_exit(entities)
-                monster.move_astar(stairs, entities, game_map, max_path=None)
+                stairs = game_map.find_exit()
+                monster.move_astar(stairs, game_map, max_path=None)
                 if current_position == (monster.x, monster.y):
-                    monster.flee(game_map, entities)
+                    monster.flee(game_map)
             
             elif monster.distance_to(target) >= 2:
-                monster.move_astar(target, entities, game_map)
+                monster.move_astar(target, game_map)
 
             elif target.fighter.hp > 0:
                 attack_results = monster.fighter.attack(target)
