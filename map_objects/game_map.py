@@ -1,7 +1,7 @@
 import tcod as libtcod
 from random import randint
 
-from components.stairs import Stairs
+from components.exits import Exit
 
 from entity import Entity
 from game_messages import Message
@@ -27,8 +27,8 @@ class World:
     def __init__(self, player, map_width, map_height):
         self.current_floor = DungeonFloor(player, map_width, map_height, 1)
 
-    def change_room(self, player, message_log):
-        self.current_floor = self.current_floor.next_floor(player, message_log)
+    def change_room(self, player, entity, message_log):
+        self.current_floor = entity.exit.take_exit(player, message_log)
 
 class DungeonFloor:
     def __init__(self, player, map_width, map_height, dungeon_level, **kwargs):
@@ -110,9 +110,13 @@ class DungeonFloor:
                 rooms.append(new_room)
                 num_rooms += 1
 
-        stairs_component = Stairs(self.dungeon_level + 1)
         down_stairs = Entity(center_of_last_room_x, center_of_last_room_y, '>', libtcod.white, 'Stairs', render_order=RenderOrder.STAIRS)
-        stairs_component.add_to_entity(down_stairs)
+        exit_component = Exit(destination=(
+                            DungeonFloor,
+                            (player, self.width, self.height, self.dungeon_level + 1),
+                            {'room_max_size': self.room_max_size, 'room_min_size': self.room_min_size, 'max_rooms': self.max_rooms}))
+        exit_component.add_to_entity(down_stairs)
+
         self.entities.append(down_stairs)
 
     def create_room(self, room):
@@ -178,9 +182,4 @@ class DungeonFloor:
         return self.tiles[x][y].blocked
 
     def find_exit(self):
-        return [e for e in self.entities if e.try_component('stairs')][0]
-
-    def next_floor(self, player, message_log):
-        player.fighter.heal(player.fighter.max_hp // 2)
-        message_log.add_message(Message('You take a moment to rest, and recover your strength.'))
-        return DungeonFloor(player, self.width, self.height, self.dungeon_level + 1, room_max_size=self.room_max_size, room_min_size=self.room_min_size, max_rooms=self.max_rooms)
+        return [e for e in self.entities if e.try_component('exit')][0]

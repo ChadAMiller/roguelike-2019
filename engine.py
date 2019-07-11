@@ -106,7 +106,7 @@ def play_game(player, world, message_log, game_state, con, panel, constants):
         show_inventory = action.get('show_inventory')
         drop_inventory = action.get('drop_inventory')
         inventory_index = action.get('inventory_index')
-        take_stairs = action.get('take_stairs')
+        take_exit = action.get('take_exit')
         exit = action.get('exit')
         fullscreen = action.get('fullscreen')
         level_up = action.get('level_up')
@@ -166,10 +166,10 @@ def play_game(player, world, message_log, game_state, con, panel, constants):
             elif game_state == GameStates.DROP_INVENTORY:
                 player_turn_results.extend(player.inventory.drop_item(item))
 
-        if take_stairs and game_state == GameStates.PLAYERS_TURN:
+        if take_exit and game_state == GameStates.PLAYERS_TURN:
             for entity in world.current_floor.entities:
-                if entity.try_component('stairs') and entity.x == player.x and entity.y == player.y:
-                    world.change_room(player, message_log)
+                if entity.try_component('exit') and entity.x == player.x and entity.y == player.y:
+                    world.change_room(player, entity, message_log)
                     fov_map = initialize_fov(world.current_floor)
                     fov_recompute = True
                     con.clear(fg=(63, 127, 63))

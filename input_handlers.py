@@ -53,7 +53,7 @@ def handle_player_turn_keys(key):
         return {'drop_inventory': True}
 
     elif key.vk == libtcod.KEY_ENTER or key.vk == libtcod.KEY_KPENTER:
-        return {'take_stairs': True}
+        return {'take_exit': True}
 
     elif key_char == 'c':
         return {'show_character_screen': True}
