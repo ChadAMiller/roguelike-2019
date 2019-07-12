@@ -1,13 +1,12 @@
 import tcod as libtcod
 from random import randint
 
-from components.exits import Exit
-
 from entity import Entity
 from game_messages import Message
 from random_utils import from_dungeon_level, random_choice_from_dict
 from render_functions import RenderOrder
 
+import map_objects.exits as exits
 import map_objects.items as items
 import map_objects.monsters as monsters
 
@@ -28,7 +27,15 @@ class World:
         self.current_floor = DungeonFloor(player, map_width, map_height, 1)
 
     def change_room(self, player, entity, message_log):
+        # remember the player's current position in case they come back to this room
+        self.current_floor.last_player_position = (player.x, player.y)
+
         self.current_floor = entity.exit.take_exit(player, message_log)
+
+        # reset the player's position if they've been here before
+        # note: currently this does not work if a player has more than one way to reenter a room where they've already been
+        if self.current_floor.last_player_position:
+            player.x, player.y = self.current_floor.last_player_position
 
 class DungeonFloor:
     def __init__(self, player, map_width, map_height, dungeon_level, **kwargs):
@@ -37,6 +44,7 @@ class DungeonFloor:
         self.room_max_size = get_or_default(kwargs, 'room_max_size')
         self.room_min_size = get_or_default(kwargs, 'room_min_size')
         self.max_rooms = get_or_default(kwargs, 'max_rooms')
+        self.previous_floor = kwargs.get('previous_floor', None)
 
         self.entities = [player]
         self.width = map_width
@@ -45,6 +53,9 @@ class DungeonFloor:
         self.name = "Dungeon Floor: {}".format(dungeon_level)
         self.initialize_tiles()
         self.make_map(player)
+
+        # To handle the case where the player reenters a floor from an upward staircase
+        self.last_player_position = None
 
     def initialize_tiles(self):
         self.tiles = [[Tile(True) for y in range(self.height)] for x in range(self.width)]
@@ -87,6 +98,8 @@ class DungeonFloor:
                     # this is the first room, where the player starts
                     player.x = new_x
                     player.y = new_y
+                    if self.previous_floor:
+                        self.entities.append(exits.UpStairs(new_x, new_y, self.previous_floor))
                 else:
                     # all rooms after the first
                     # connect it to the previous room with a tunnel
@@ -110,14 +123,11 @@ class DungeonFloor:
                 rooms.append(new_room)
                 num_rooms += 1
 
-        down_stairs = Entity(center_of_last_room_x, center_of_last_room_y, '>', libtcod.white, 'Stairs', render_order=RenderOrder.STAIRS)
-        exit_component = Exit(destination=(
-                            DungeonFloor,
-                            (player, self.width, self.height, self.dungeon_level + 1),
-                            {'room_max_size': self.room_max_size, 'room_min_size': self.room_min_size, 'max_rooms': self.max_rooms}))
-        exit_component.add_to_entity(down_stairs)
-
-        self.entities.append(down_stairs)
+        destination=(
+            DungeonFloor,
+            (player, self.width, self.height, self.dungeon_level + 1),
+            {'room_max_size': self.room_max_size, 'room_min_size': self.room_min_size, 'max_rooms': self.max_rooms, 'previous_floor': self})
+        self.entities.append(exits.DownStairs(center_of_last_room_x, center_of_last_room_y, destination))
 
     def create_room(self, room):
         # go through the tiles in the rectangle and make them passable
@@ -182,4 +192,5 @@ class DungeonFloor:
         return self.tiles[x][y].blocked
 
     def find_exit(self):
-        return [e for e in self.entities if e.try_component('exit')][0]
+        '''For the snake AI. Currently points to the downward stairs'''
+        return [e for e in self.entities if e.try_component('exit')][-1]
