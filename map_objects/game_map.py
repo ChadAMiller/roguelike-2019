@@ -156,10 +156,10 @@ class DungeonFloor:
 
         monster_chances = {
                         monsters.Orc: 80,
-                        monsters.Snake: 20,
+                        monsters.Snake: [i*10 for i in range(10), self.dungeon_level],
                         monsters.Troll: from_dungeon_level([[15, 3], [30, 5], [60, 7]], self.dungeon_level),
                         monsters.Balrog: from_dungeon_level([((i-3)*10, i) for i in range (3, 10)], self.dungeon_level),
-                        monsters.Wraith: 5,
+                        monsters.Wraith: [i for i in range(10), self.dungeon_level],
                         }
         item_chances = {
                         items.HealingPotion: 5,
