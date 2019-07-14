@@ -12,4 +12,9 @@ class DownStairs(Entity):
 class UpStairs(Entity):
     def __init__(self, x, y, old_floor):
         super().__init__(x, y, '<', libtcod.white, 'Stairs (Up)', render_order=RenderOrder.STAIRS)
-        components.exit.Exit(destination=(), new_floor=old_floor).add_to_entity(self)
+        components.exit.Exit(new_floor=old_floor).add_to_entity(self)
+
+class Altar(Entity):
+    '''Does not use exit component because it cannot be used normally. Game winning logic is in the Chalice item instead.'''
+    def __init__(self, x, y):
+        super().__init__(x, y, '=', libtcod.white, 'Altar of the Dark Magician')

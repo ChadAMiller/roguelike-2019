@@ -173,16 +173,16 @@ def play_game(player, world, message_log, game_state, con, panel, constants):
                     fov_map = initialize_fov(world.current_floor)
                     fov_recompute = True
                     con.clear(fg=(63, 127, 63))
+                    game_state = GameStates.ENEMY_TURN
                     break
 
             else:
                 message_log.add_message(Message('There are no stairs here.', libtcod.yellow))
 
         if level_up:
-            if level_up == 'hp':
-                player.fighter.base_max_hp += 20
-                player.fighter.hp += 20
-            elif level_up == 'str':
+            player.fighter.base_max_hp += 20
+            player.fighter.hp += 20
+            if level_up == 'str':
                 player.fighter.base_power += 1
             elif level_up == 'def':
                 player.fighter.base_defense += 1
@@ -224,6 +224,11 @@ def play_game(player, world, message_log, game_state, con, panel, constants):
             targeting = player_turn_result.get('targeting')
             targeting_cancelled = player_turn_result.get('targeting_cancelled')
             xp = player_turn_result.get('xp')
+            won_game = player_turn_result.get('won_game')
+
+            if won_game:
+                message_log.add_message(Message("You win!"))
+                game_state = GameStates.WON_GAME
 
             if message:
                 message_log.add_message(message)

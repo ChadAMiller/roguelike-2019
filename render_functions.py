@@ -3,7 +3,7 @@ import tcod as libtcod
 from enum import Enum, auto
 
 from game_states import GameStates
-from menus import character_screen, inventory_menu, level_up_menu
+from menus import character_screen, inventory_menu, level_up_menu, win_screen
 
 class RenderOrder(Enum):
     INVISIBLE = auto()
@@ -94,6 +94,9 @@ def render_all(con, panel, player, game_map, fov_map, fov_recompute, message_log
 
     elif game_state == GameStates.CHARACTER_SCREEN:
         character_screen(player, 30, 10, screen_width, screen_height)
+
+    elif game_state == GameStates.WON_GAME:
+        win_screen(con, screen_width, screen_height)
 
 def clear_all(con, entities):
     for entity in entities:

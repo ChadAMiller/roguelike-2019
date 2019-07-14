@@ -43,3 +43,8 @@ class ConfusionScroll(Entity):
     def __init__(self, x, y):
         super().__init__(x, y, '#', libtcod.light_pink, 'Confusion Scroll', render_order=RenderOrder.ITEM)
         Item(use_function=item_functions.cast_confuse, targeting=True, targeting_message=Message('Left-click and enemy to confuse it, or right-click to cancel.', libtcod.light_cyan)).add_to_entity(self)
+
+class Chalice(Entity):
+    def __init__(self, x, y):
+        super().__init__(x, y, 'y', libtcod.violet, 'Magic Chalice', render_order=RenderOrder.ITEM)
+        Item(use_function=item_functions.rub_chalice).add_to_entity(self)

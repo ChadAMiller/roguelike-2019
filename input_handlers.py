@@ -5,8 +5,8 @@ from game_states import GameStates
 def handle_keys(key, game_state):
     if game_state == GameStates.PLAYERS_TURN:
         return handle_player_turn_keys(key)
-    elif game_state == GameStates.PLAYER_DEAD:
-        return handle_player_dead_keys(key)
+    elif game_state in (GameStates.PLAYER_DEAD, GameStates.WON_GAME):
+        return handle_game_over_keys(key)
     elif game_state == GameStates.TARGETING:
         return handle_targeting_keys(key)
     elif game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
@@ -65,7 +65,7 @@ def handle_player_turn_keys(key):
     # No key was pressed
     return {}
 
-def handle_player_dead_keys(key):
+def handle_game_over_keys(key):
     key_char = chr(key.c)
 
     if key_char == 'i':
@@ -117,10 +117,8 @@ def handle_level_up_menu(key):
         key_char = chr(key.c)
 
         if key_char == 'a':
-            return {'level_up': 'hp'}
-        elif key_char == 'b':
             return {'level_up': 'str'}
-        elif key_char == 'c':
+        elif key_char == 'b':
             return {'level_up': 'def'}
 
     return {}

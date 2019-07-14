@@ -49,14 +49,14 @@ def main_menu(con, background_image, screen_width, screen_height):
     libtcod.image_blit_2x(background_image, 0, 0, 0)
 
     libtcod.console_set_default_foreground(0, libtcod.light_yellow)
-    libtcod.console_print_ex(0, int(screen_width / 2), int(screen_height / 2) - 4, libtcod.BKGND_NONE, libtcod.CENTER, 'TOMBS OF THE ANCIENT KINGS')
-    libtcod.console_print_ex(0, int(screen_width / 2), int(screen_height - 2), libtcod.BKGND_NONE, libtcod.CENTER, 'By Xhad')
+    libtcod.console_print_ex(0, int(screen_width / 2), int(screen_height / 2) - 4, libtcod.BKGND_NONE, libtcod.CENTER, 'SEEKER OF THE CHALICE')
+    libtcod.console_print_ex(0, int(screen_width / 2), int(screen_height - 2), libtcod.BKGND_NONE, libtcod.CENTER, 'By Xhad (for r/roguelikedev does the roguelike tutorial, 2019)')
 
     menu(con, '', ['Play a new game', 'Continue last game', 'Quit'], 24, screen_width, screen_height)
 
 def level_up_menu(con, header, player, menu_width, screen_width, screen_height):
     options = [
-                'Constitution (+20 HP, from {0}'.format(player.fighter.max_hp),
+                # 'Constitution (+20 HP, from {0}'.format(player.fighter.max_hp),
                 'Strength (+1 attack, from {0})'.format(player.fighter.power),
                 'Agility (+1 defense, from {0}'.format(player.fighter.defense),
             ]
@@ -87,3 +87,12 @@ def character_screen(player, character_screen_width, character_screen_height, sc
 
 def message_box(con, header, width, screen_width, screen_height):
     menu(con, header, [], width, screen_width, screen_height)
+
+def win_screen(con, screen_width, screen_height):
+    ending_message = '''
+You have recovered the chalice and escaped the dungeon!
+You win!
+(press ESC to return to the main menu)
+'''
+    message_width = max(len(line) for line in ending_message.splitlines())
+    message_box(con, ending_message, message_width, screen_width, screen_height)

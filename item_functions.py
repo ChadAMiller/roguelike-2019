@@ -109,3 +109,16 @@ def regenerate(*args, **kwargs):
     entity.status_effects.add_status(status_effects.HealOverTime(name, amount, duration))
 
     return results
+
+def rub_chalice(*args, **kwargs):
+    results = []
+    player = args[0]
+    entities = kwargs.get('entities')
+    for e in entities:
+        if e.x == player.x and e.y == player.y:
+            results.append({'won_game': True})
+            break
+        else:
+            results.append({'consumed': False, 'message': Message('You rub the chalice, but nothing happens. You need to return to the altar.')})
+
+    return results

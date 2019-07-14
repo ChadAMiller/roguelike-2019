@@ -19,12 +19,14 @@ DEFAULTS = {
     'max_rooms': 30,
 }
 
+DUNGEON_DEPTH = 10 # Not entirely happy with this, still thinking about it
+
 def get_or_default(d, k):
     return d.get(k, DEFAULTS[k])
 
 class World:
     def __init__(self, player, map_width, map_height):
-        self.current_floor = DungeonFloor(player, map_width, map_height, 1)
+        self.current_floor = StartingFloor(player, map_width, map_height)
 
     def change_room(self, player, entity, message_log):
         # remember the player's current position in case they come back to this room
@@ -45,21 +47,50 @@ class DungeonFloor:
         self.room_min_size = get_or_default(kwargs, 'room_min_size')
         self.max_rooms = get_or_default(kwargs, 'max_rooms')
         self.previous_floor = kwargs.get('previous_floor', None)
+        self.name = kwargs.get('name', "Dungeon Floor: {}".format(dungeon_level))
 
         self.entities = [player]
         self.width = map_width
         self.height = map_height
         self.dungeon_level = dungeon_level
-        self.name = "Dungeon Floor: {}".format(dungeon_level)
         self.initialize_tiles()
         self.make_map(player)
 
         # To handle the case where the player reenters a floor from an upward staircase
         self.last_player_position = None
 
+    def make_map(self, player):
+        '''This should be overridden by subclasses'''
+        raise NotImplementedError
+
     def initialize_tiles(self):
         self.tiles = [[Tile(True) for y in range(self.height)] for x in range(self.width)]
 
+    def create_room(self, room):
+        # go through the tiles in the rectangle and make them passable
+        for x in range(room.x1 + 1, room.x2):
+            for y in range(room.y1 + 1, room.y2):
+                self.tiles[x][y].blocked = False
+                self.tiles[x][y].block_sight = False
+
+    def create_h_tunnel(self, x1, x2, y):
+        for x in range(min(x1, x2), max(x1, x2) + 1):
+            self.tiles[x][y].blocked = False
+            self.tiles[x][y].block_sight = False
+
+    def create_v_tunnel(self, y1, y2, x):
+        for y in range(min(y1, y2), max(y1, y2) + 1):
+            self.tiles[x][y].blocked = False
+            self.tiles[x][y].block_sight = False
+
+    def is_blocked(self, x, y):
+        return self.tiles[x][y].blocked
+
+    def find_exit(self):
+        '''For the snake AI. Currently the last exit in the list is the downward stairs'''
+        return [e for e in self.entities if e.try_component('exit')][-1]
+
+class StandardFloor(DungeonFloor):
     def make_map(self, player):
         rooms = []
         num_rooms = 0
@@ -123,28 +154,17 @@ class DungeonFloor:
                 rooms.append(new_room)
                 num_rooms += 1
 
-        destination=(
-            DungeonFloor,
-            (player, self.width, self.height, self.dungeon_level + 1),
-            {'room_max_size': self.room_max_size, 'room_min_size': self.room_min_size, 'max_rooms': self.max_rooms, 'previous_floor': self})
+        if self.dungeon_level < DUNGEON_DEPTH:
+            destination=(
+                StandardFloor,
+                (player, self.width, self.height, self.dungeon_level + 1),
+                {'room_max_size': self.room_max_size, 'room_min_size': self.room_min_size, 'max_rooms': self.max_rooms, 'previous_floor': self})
+        else:
+            destination=(
+                EndingFloor,
+                (player, self.width, self.height, self.dungeon_level + 1),
+                {'previous_floor': self})
         self.entities.append(exits.DownStairs(center_of_last_room_x, center_of_last_room_y, destination))
-
-    def create_room(self, room):
-        # go through the tiles in the rectangle and make them passable
-        for x in range(room.x1 + 1, room.x2):
-            for y in range(room.y1 + 1, room.y2):
-                self.tiles[x][y].blocked = False
-                self.tiles[x][y].block_sight = False
-
-    def create_h_tunnel(self, x1, x2, y):
-        for x in range(min(x1, x2), max(x1, x2) + 1):
-            self.tiles[x][y].blocked = False
-            self.tiles[x][y].block_sight = False
-
-    def create_v_tunnel(self, y1, y2, x):
-        for y in range(min(y1, y2), max(y1, y2) + 1):
-            self.tiles[x][y].blocked = False
-            self.tiles[x][y].block_sight = False
 
     def place_entities(self, room):
         # Get a random number of monsters
@@ -156,10 +176,10 @@ class DungeonFloor:
 
         monster_chances = {
                         monsters.Orc: 80,
-                        monsters.Snake: [i*10 for i in range(10), self.dungeon_level],
+                        monsters.Snake: from_dungeon_level([(i*10, i) for i in range(10)], self.dungeon_level),
                         monsters.Troll: from_dungeon_level([[15, 3], [30, 5], [60, 7]], self.dungeon_level),
                         monsters.Balrog: from_dungeon_level([((i-3)*10, i) for i in range (3, 10)], self.dungeon_level),
-                        monsters.Wraith: [i for i in range(10), self.dungeon_level],
+                        monsters.Wraith: from_dungeon_level([(i, i) for i in range(10)], self.dungeon_level),
                         }
         item_chances = {
                         items.HealingPotion: 5,
@@ -188,9 +208,37 @@ class DungeonFloor:
                 item_choice = random_choice_from_dict(item_chances)
                 self.entities.append(item_choice(x, y))
 
-    def is_blocked(self, x, y):
-        return self.tiles[x][y].blocked
+class StartingFloor(DungeonFloor):
+    def __init__(self, player, map_width, map_height):
+        super().__init__(player, map_width, map_height, 0, name="Entry Chamber")
 
-    def find_exit(self):
-        '''For the snake AI. Currently points to the downward stairs'''
-        return [e for e in self.entities if e.try_component('exit')][-1]
+    def make_map(self, player):
+        starting_room = Rect(self.width // 2, self.height // 2, 6, 10)
+        center = starting_room.center()
+        self.create_room(starting_room)
+
+        player.x, player.y = center
+        player.y += 3
+
+        self.entities.append(exits.Altar(player.x, player.y))
+
+        destination=(
+            StandardFloor,
+            (player, self.width, self.height, self.dungeon_level + 1),
+            {'room_max_size': self.room_max_size, 'room_min_size': self.room_min_size, 'max_rooms': self.max_rooms, 'previous_floor': self})
+        self.entities.append(exits.DownStairs(center[0], center[1]-3, destination))
+
+class EndingFloor(DungeonFloor):
+    def __init__(self, player, map_width, map_height, dungeon_level, **kwargs):
+        super().__init__(player, map_width, map_height, dungeon_level, name="Hall of the Chalice", **kwargs)
+
+    def make_map(self, player):
+        ending_room = Rect(self.width // 2, self.height // 2, 6, 10)
+        center = ending_room.center()
+        self.create_room(ending_room)
+
+        player.x, player.y = center
+        player.y += 3
+
+        self.entities.append(exits.UpStairs(player.x, player.y, self.previous_floor))
+        self.entities.append(items.Chalice(center[0], center[1]-3))

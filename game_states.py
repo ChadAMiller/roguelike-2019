@@ -9,6 +9,7 @@ class GameStates(Enum):
     TARGETING = auto()
     LEVEL_UP = auto()
     CHARACTER_SCREEN = auto()
+    WON_GAME = auto()
 
 if __name__ == '__main__':
     print(list(GameStates))
