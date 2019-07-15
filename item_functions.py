@@ -51,7 +51,7 @@ def cast_fireball(*args, **kwargs):
     entities = kwargs.get('entities')
     fov_map = kwargs.get('fov_map')
     damage = kwargs.get('damage')
-    radius = kwargs.get('radius')
+    radius = kwargs.get('targeting_radius')
     target_x = kwargs.get('target_x')
     target_y = kwargs.get('target_y')
 

@@ -33,7 +33,7 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_c
     libtcod.console_set_default_foreground(panel, libtcod.white)
     libtcod.console_print_ex(panel, int(x + total_width / 2), y, libtcod.BKGND_NONE, libtcod.CENTER, '{0}: {1}/{2}'.format(name, value, maximum))
 
-def render_all(con, panel, player, game_map, fov_map, fov_recompute, message_log, screen_width, screen_height, bar_width, panel_height, panel_y, mouse, colors, game_state):
+def render_all(con, panel, player, game_map, fov_map, fov_recompute, message_log, screen_width, screen_height, bar_width, panel_height, panel_y, mouse, colors, game_state, targeting_item):
     if fov_recompute:
         for y in range(game_map.height):
             for x in range(game_map.width):
@@ -59,7 +59,11 @@ def render_all(con, panel, player, game_map, fov_map, fov_recompute, message_log
     entities_in_render_order = sorted(visible_entities, key=lambda x: x.render_order.value)
 
     for entity in entities_in_render_order:
-        draw_entity(con, entity, fov_map, game_map)
+        if game_state == GameStates.TARGETING and targeting_item.valid_target(mouse, fov_map, entity) and entity.distance(mouse.cx, mouse.cy) <= targeting_item.item.targeting_radius:
+            libtcod.console_set_default_foreground(con, libtcod.darkest_red)
+            libtcod.console_put_char(con, entity.x, entity.y, entity.char, libtcod.BKGND_NONE)
+        else:
+            draw_entity(con, entity, fov_map, game_map)
 
     libtcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 

@@ -32,7 +32,10 @@ class Shield(Entity):
 class FireballScroll(Entity):
     def __init__(self, x, y):
         super().__init__(x, y, '#', libtcod.red, 'Fireball Scroll', render_order=RenderOrder.ITEM)
-        Item(use_function=item_functions.cast_fireball, targeting=True, targeting_message=Message('Left-click a target tile for the fireball, or right-click to cancel.', libtcod.light_cyan), damage=25, radius=3).add_to_entity(self)
+        Item(use_function=item_functions.cast_fireball, targeting=True, targeting_message=Message('Left-click a target tile for the fireball, or right-click to cancel.', libtcod.light_cyan), targeting_radius=3, damage=25).add_to_entity(self)
+
+    def valid_target(self, mouse, fov_map, entity):
+        return libtcod.map_is_in_fov(fov_map, mouse.cx, mouse.cy) and entity.try_component('fighter')
 
 class LightningScroll(Entity):
     def __init__(self, x, y):
@@ -42,7 +45,10 @@ class LightningScroll(Entity):
 class ConfusionScroll(Entity):
     def __init__(self, x, y):
         super().__init__(x, y, '#', libtcod.light_pink, 'Confusion Scroll', render_order=RenderOrder.ITEM)
-        Item(use_function=item_functions.cast_confuse, targeting=True, targeting_message=Message('Left-click and enemy to confuse it, or right-click to cancel.', libtcod.light_cyan)).add_to_entity(self)
+        Item(use_function=item_functions.cast_confuse, targeting=True, targeting_message=Message('Left-click and enemy to confuse it, or right-click to cancel.', libtcod.light_cyan), targeting_radius=0).add_to_entity(self)
+
+    def valid_target(self, mouse, fov_map, entity):
+        return libtcod.map_is_in_fov(fov_map, mouse.cx, mouse.cy) and entity.try_component('ai')
 
 class Chalice(Entity):
     def __init__(self, x, y):
