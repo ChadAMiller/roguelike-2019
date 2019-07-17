@@ -38,11 +38,16 @@ class Entity:
         if ignore_blocking or not (game_map.is_blocked(self.x + dx, self.y + dy) or get_blocking_entities_at_location(game_map.entities, self.x + dx, self.y + dy)):
             self.move(dx, dy)
 
-    def flee(self, game_map, ignore_blocking=False):
-        # attempt to flee in a random direction
+    def flee(self, target, game_map, ignore_blocking=False):
+        # attempt to flee in a random direction away from target
         directions = [(i,j) for i in range(-1, 2) for j in range(-1, 2)]
         directions.remove((0,0)) # don't want to stand still except as a last resort
-        random.shuffle(directions)
+        random.shuffle(directions) # randomizing first so the fleeing isn't biased in any one direction
+        def target_distance(direction):
+            dx, dy = direction
+            return target.distance(self.x + dx, self.y + dy)
+            
+        directions.sort(key=target_distance, reverse=True)
 
         for dx,dy in directions:
             if ignore_blocking or not (game_map.is_blocked(self.x + dx, self.y + dy) or get_blocking_entities_at_location(game_map.entities, self.x + dx, self.y + dy)):

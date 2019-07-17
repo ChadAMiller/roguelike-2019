@@ -7,10 +7,11 @@ from game_messages import Message
 
 from components import status_effects
 
-class BasicMonster(Component):
+class AiComponent(Component):
     def __init__(self):
-        super().__init__("ai")
+        super().__init__('ai')
 
+class BasicMonster(AiComponent):
     def take_turn(self, target, fov_map, game_map):
         results = []
 
@@ -26,9 +27,9 @@ class BasicMonster(Component):
 
         return results
 
-class ConfusedMonster(Component):
+class ConfusedMonster(AiComponent):
     def __init__(self, previous_ai, number_of_turns=10):
-        super().__init__("ai")
+        super().__init__()
         self.previous_ai = previous_ai
         self.number_of_turns = number_of_turns
 
@@ -50,9 +51,9 @@ class ConfusedMonster(Component):
 
         return results
 
-class WraithMonster(Component):
+class WraithMonster(AiComponent):
     def __init__(self):
-        super().__init__('ai')
+        super().__init__()
         self.player_spotted = False
 
     def take_turn(self, target, fov_map, game_map):
@@ -73,10 +74,7 @@ class WraithMonster(Component):
         
         return results
 
-class SnakeMonster(Component):
-    def __init__(self):
-        super().__init__("ai")
-
+class SnakeMonster(AiComponent):
     def take_turn(self, target, fov_map, game_map):
         results = []
 
@@ -89,7 +87,7 @@ class SnakeMonster(Component):
                 stairs = game_map.find_exit()
                 monster.move_astar(stairs, game_map, max_path=None)
                 if current_position == (monster.x, monster.y):
-                    monster.flee(game_map)
+                    monster.flee(target, game_map)
             
             elif monster.distance_to(target) >= 2:
                 monster.move_astar(target, game_map)
@@ -98,6 +96,20 @@ class SnakeMonster(Component):
                 attack_results = monster.fighter.attack(target)
                 results.append({'message': Message("The snake has poisoned you!")})
                 target.status_effects.add_status(status_effects.DamageOverTime('Poisoned', 2, 10))
+                results.extend(attack_results)
+
+        return results
+
+class ArcherMonster(AiComponent):
+    def take_turn(self, target, fov_map, game_map):
+        results = []
+        monster = self.owner
+        if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
+            if monster.distance_to(target) <= 2:
+                monster.flee(target, game_map)
+
+            elif target.fighter.hp > 0:
+                attack_results = monster.fighter.attack(target, ignore_armor=True)
                 results.extend(attack_results)
 
         return results

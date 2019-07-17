@@ -62,3 +62,10 @@ class Snake(Monster):
         # It has no power because it poisons you. Poison effect is in the AI.
         Fighter(hp=20, defense=0, power=0, xp=50).add_to_entity(self)
         ai.SnakeMonster().add_to_entity(self)
+
+class Archer(Monster):
+    def __init__(self, x, y):
+        super().__init__(x, y, 'a', libtcod.darkest_gray, 'Archer', blocks=True, render_order=RenderOrder.ACTOR)
+
+        Fighter(hp=5, defense=0, power=4, xp=75).add_to_entity(self)
+        ai.ArcherMonster().add_to_entity(self)
