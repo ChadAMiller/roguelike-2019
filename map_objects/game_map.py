@@ -176,7 +176,7 @@ class StandardFloor(DungeonFloor):
 
         monster_chances = {
                         monsters.Orc: 80,
-                        monsters.Archer: from_dungeon_level([(i*5, i) for i in range(10)], self.dungeon_level),
+                        monsters.Archer: from_dungeon_level([(i*2, i) for i in range(10)], self.dungeon_level),
                         monsters.Snake: from_dungeon_level([(i*10, i) for i in range(10)], self.dungeon_level),
                         monsters.Troll: from_dungeon_level([[15, 3], [30, 5], [60, 7]], self.dungeon_level),
                         monsters.Balrog: from_dungeon_level([(max(i-4*10, i), i) for i in range (10)], self.dungeon_level),

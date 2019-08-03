@@ -115,10 +115,10 @@ def rub_chalice(*args, **kwargs):
     player = args[0]
     entities = kwargs.get('entities')
     for e in entities:
-        if e.x == player.x and e.y == player.y:
+        if e.name == 'Altar of the Dark Magician' and e.x == player.x and e.y == player.y:
             results.append({'won_game': True})
             break
-        else:
-            results.append({'consumed': False, 'message': Message('You rub the chalice, but nothing happens. You need to return to the altar.')})
+    else:
+        results.append({'consumed': False, 'message': Message('You rub the chalice, but nothing happens. You need to return to the altar.')})
 
     return results

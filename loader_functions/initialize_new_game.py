@@ -65,7 +65,7 @@ def get_constants():
 
 def get_game_variables(constants):
     player = Entity(0, 0, '@', libtcod.white, 'Player', blocks=True, render_order=RenderOrder.ACTOR)
-    Fighter(hp=100, defense=2, power=2).add_to_entity(player)
+    Fighter(hp=100, defense=15, power=2, hit=11).add_to_entity(player)
     Level().add_to_entity(player)
 
     inventory_component = Inventory(26)

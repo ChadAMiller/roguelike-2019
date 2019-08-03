@@ -1,15 +1,18 @@
 import tcod as libtcod
 
+from random import randint
+
 from components.component import Component
 from game_messages import Message
 
 class Fighter(Component):
-    def __init__(self, hp, defense, power, xp=0):
+    def __init__(self, hp, defense, power, hit, xp=0):
         super().__init__("fighter")
         self.base_max_hp = hp
         self.hp = hp
         self.base_defense = defense
         self.base_power = power
+        self.hit = hit
         self.xp = xp
 
     @property
@@ -57,10 +60,14 @@ class Fighter(Component):
     def attack(self, target, ignore_armor=False):
         results = []
 
-        if ignore_armor:
+        roll = randint(1,20)
+
+        if roll + self.hit < target.fighter.defense:
+            damage = 0
+        elif ignore_armor:
             damage = self.power
         else:
-            damage = self.power - target.fighter.defense
+            damage = self.power
 
         if damage > 0:
             results.append({'message': Message('{0} attacks {1}, dealing {2} damage.'.format(self.owner.name.capitalize(), target.name, str(damage)), libtcod.white)})

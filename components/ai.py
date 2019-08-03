@@ -95,7 +95,7 @@ class SnakeMonster(AiComponent):
             elif target.fighter.hp > 0:
                 attack_results = monster.fighter.attack(target)
                 results.append({'message': Message("The snake has poisoned you!")})
-                target.status_effects.add_status(status_effects.DamageOverTime('Poisoned', 2, 10))
+                target.status_effects.add_status(status_effects.DamageOverTime('Poisoned', 1, 20))
                 results.extend(attack_results)
 
         return results
@@ -109,7 +109,7 @@ class ArcherMonster(AiComponent):
                 monster.flee(target, game_map)
 
             elif target.fighter.hp > 0:
-                attack_results = monster.fighter.attack(target, ignore_armor=True)
+                attack_results = monster.fighter.attack(target)
                 results.extend(attack_results)
 
         return results

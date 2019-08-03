@@ -183,7 +183,7 @@ def play_game(player, world, message_log, game_state, con, panel, constants):
             player.fighter.base_max_hp += 20
             player.fighter.hp += 20
             if level_up == 'str':
-                player.fighter.base_power += 1
+                player.fighter.hit += 1
             elif level_up == 'def':
                 player.fighter.base_defense += 1
 
