@@ -90,6 +90,10 @@ class DungeonFloor:
         '''For the snake AI. Currently the last exit in the list is the downward stairs'''
         return [e for e in self.entities if e.try_component('exit')][-1]
 
+    def find_entity(self, condition, key=None):
+        entities_list = sorted((e for e in self.entities if condition(e)), key=key)
+        return entities_list[0] if entities_list else None
+
 class StandardFloor(DungeonFloor):
     def make_map(self, player):
         rooms = []
@@ -179,7 +183,8 @@ class StandardFloor(DungeonFloor):
                         monsters.Archer: from_dungeon_level([(i*2, i) for i in range(10)], self.dungeon_level),
                         monsters.Snake: from_dungeon_level([(i*10, i) for i in range(10)], self.dungeon_level),
                         monsters.Troll: from_dungeon_level([[15, 3], [30, 5], [60, 7]], self.dungeon_level),
-                        monsters.Balrog: from_dungeon_level([(max(i-4*10, i), i) for i in range (10)], self.dungeon_level),
+                        # cutting Balrog for now unless I rebalance the game
+                        # monsters.Balrog: from_dungeon_level([(max(i-4*10, i), i) for i in range (10)], self.dungeon_level),
                         monsters.Wraith: from_dungeon_level([(i, i) for i in range(10)], self.dungeon_level),
                         }
         item_chances = {

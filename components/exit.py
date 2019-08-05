@@ -1,6 +1,8 @@
 from components.component import Component
 from game_messages import Message
 
+import map_objects.monsters as monsters
+
 class Exit(Component):
     def __init__(self, destination=tuple(), new_floor=None): 
         super().__init__('exit')
@@ -35,5 +37,19 @@ class DownStairsExit(Exit):
             self.already_taken = True
             player.fighter.heal(player.fighter.max_hp // 2)
             message_log.add_message(Message('You take a moment to rest, and recover your strength.'))
+
+        return super().take_exit(player, message_log)
+
+class UpStairsExit(Exit):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.taken_with_chalice = False
+
+    def take_exit(self, player, message_log):
+        if not self.taken_with_chalice and any(item.name == 'Magic Chalice' for item in player.inventory.items):
+            self.taken_with_chalice = True
+            next_upstairs = self.next_floor.find_entity(lambda e: e.name == "Stairs (Up)")
+            if next_upstairs:
+                self.next_floor.entities.append(monsters.Necromancer(next_upstairs.x, next_upstairs.y))
 
         return super().take_exit(player, message_log)

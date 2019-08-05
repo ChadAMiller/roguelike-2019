@@ -69,3 +69,24 @@ class Archer(Monster):
 
         Fighter(hp=5, defense=11, power=2, hit=11, xp=75).add_to_entity(self)
         ai.ArcherMonster().add_to_entity(self)
+
+class Skeleton(Monster):
+    def __init__(self, x, y):
+        super().__init__(x, y, 's', libtcod.white, 'Skeleton', blocks=True, render_order=RenderOrder.ACTOR)
+
+        Fighter(hp=10, defense=5, power=10, hit=5, xp=25).add_to_entity(self)
+        ai.BasicMonster().add_to_entity(self)
+
+    def set_corpse(self):
+        self.blocks = False
+        self.fighter = None
+        self.ai = None
+        self.name = ''
+        self.render_order = RenderOrder.INVISIBLE
+
+class Necromancer(Monster):
+    def __init__(self, x, y):
+        super().__init__(x, y, 'n', libtcod.darkest_crimson, 'Necromancer', blocks=True, render_order=RenderOrder.ACTOR)
+
+        Fighter(hp=40, defense=10, power=3, hit=15, xp=250).add_to_entity(self)
+        ai.NecromancerMonster().add_to_entity(self)

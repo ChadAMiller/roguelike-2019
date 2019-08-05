@@ -7,6 +7,8 @@ from game_messages import Message
 
 from components import status_effects
 
+import map_objects.monsters as monsters
+
 class AiComponent(Component):
     def __init__(self):
         super().__init__('ai')
@@ -111,5 +113,28 @@ class ArcherMonster(AiComponent):
             elif target.fighter.hp > 0:
                 attack_results = monster.fighter.attack(target)
                 results.extend(attack_results)
+
+        return results
+
+class NecromancerMonster(AiComponent):
+    def take_turn(self, target, fov_map, game_map):
+        results = []
+        monster = self.owner
+
+        nearest_corpse = game_map.find_entity(lambda e: e.char == '%', lambda e: e.distance_to(monster))
+
+        if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
+            results.extend(monster.fighter.attack(target))
+        elif not nearest_corpse:
+            # hunt player if no corpses on the floor
+            monster.move_astar(target, game_map, max_path=None)
+        elif monster.distance_to(nearest_corpse) <= 3:
+            # use nearest corpse to spawn a skeleton
+            x, y = nearest_corpse.x, nearest_corpse.y
+            game_map.entities.remove(nearest_corpse)
+            game_map.entities.append(monsters.Skeleton(x, y))
+        else:
+            # hunt down the nearest corpse to reanimate
+            monster.move_astar(nearest_corpse, game_map, max_path=None)
 
         return results
