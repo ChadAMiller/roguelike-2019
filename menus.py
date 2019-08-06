@@ -57,7 +57,7 @@ def main_menu(con, background_image, screen_width, screen_height):
 def level_up_menu(con, header, player, menu_width, screen_width, screen_height):
     options = [
                 # 'Constitution (+20 HP, from {0}'.format(player.fighter.max_hp),
-                'Strength (+1 attack, from {0})'.format(player.fighter.power),
+                'Accuracy (+1 hit, from {0})'.format(player.fighter.hit),
                 'Agility (+1 defense, from {0}'.format(player.fighter.defense),
             ]
     menu(con, header, options, menu_width, screen_width, screen_height)
@@ -71,7 +71,8 @@ def character_screen(player, character_screen_width, character_screen_height, sc
                         'Experience: {0}'.format(player.level.current_xp),
                         'Experience to Level: {0}'.format(player.level.experience_to_next_level),
                         'Maximum HP: {0}'.format(player.fighter.max_hp),
-                        'Attack: {0}'.format(player.fighter.power),
+                        'Damage: {0}'.format(player.fighter.power),
+                        'Accuracy: {0}'.format(player.fighter.hit),
                         'Defense: {0}'.format(player.fighter.defense),                        
                     ]
     if player.status_effects.active_statuses:

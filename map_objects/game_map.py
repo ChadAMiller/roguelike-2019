@@ -180,22 +180,33 @@ class StandardFloor(DungeonFloor):
 
         monster_chances = {
                         monsters.Orc: 80,
-                        monsters.Archer: from_dungeon_level([(i*2, i) for i in range(10)], self.dungeon_level),
-                        monsters.Snake: from_dungeon_level([(i*10, i) for i in range(10)], self.dungeon_level),
+                        monsters.Archer: from_dungeon_level([(i*2, i) for i in range(DUNGEON_DEPTH)], self.dungeon_level),
+                        monsters.Snake: from_dungeon_level([(i*10, i) for i in range(DUNGEON_DEPTH)], self.dungeon_level),
                         monsters.Troll: from_dungeon_level([[15, 3], [30, 5], [60, 7]], self.dungeon_level),
-                        # cutting Balrog for now unless I rebalance the game
-                        # monsters.Balrog: from_dungeon_level([(max(i-4*10, i), i) for i in range (10)], self.dungeon_level),
+                        monsters.Balrog: from_dungeon_level([(max(i-4*10, i), i) for i in range (DUNGEON_DEPTH)], self.dungeon_level),
                         monsters.Wraith: from_dungeon_level([(i, i) for i in range(10)], self.dungeon_level),
                         }
-        item_chances = {
+
+        item_chances = {}
+
+        sword_chances = {items.sword_class(i+2): from_dungeon_level([[i*2, i]], self.dungeon_level) for i in range(DUNGEON_DEPTH)}
+        item_chances.update(sword_chances)
+
+        shield_chances = {items.shield_class(i): from_dungeon_level([[i*3, i]], self.dungeon_level) for i in range(DUNGEON_DEPTH)}
+        item_chances.update(shield_chances)
+
+        potion_chances = {
                         items.HealingPotion: 5,
-                        items.Sword: from_dungeon_level([[5, 4]], self.dungeon_level),
-                        items.Shield: from_dungeon_level([[15, 8]], self.dungeon_level),
+                        items.RejuvenationPotion: 35,
+                        }
+        item_chances.update(potion_chances)
+
+        scroll_chances = {
                         items.LightningScroll: from_dungeon_level([[25, 4]], self.dungeon_level),
                         items.FireballScroll: from_dungeon_level([[25, 6]], self.dungeon_level),
                         items.ConfusionScroll: from_dungeon_level([[10, 2]], self.dungeon_level),
-                        items.RejuvenationPotion: 35,
                         }
+        item_chances.update(scroll_chances)
 
         for _ in range(number_of_monsters):
             # Choose a random location in the room

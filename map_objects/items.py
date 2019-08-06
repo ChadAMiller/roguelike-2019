@@ -1,5 +1,7 @@
 import tcod as libtcod
 
+from functools import partial
+
 import item_functions
 
 from components.equippable import Equippable
@@ -20,14 +22,14 @@ class RejuvenationPotion(Entity):
         Item(use_function=item_functions.regenerate, name="Potion of Rejuvenation", amount=10, duration=4).add_to_entity(self)
 
 class Sword(Entity):
-    def __init__(self, x, y):
-        super().__init__(x, y, '/', libtcod.sky, 'Sword')
-        Equippable(EquipmentSlots.MAIN_HAND, power_bonus=3).add_to_entity(self)
+    def __init__(self, x, y, bonus=3):
+        super().__init__(x, y, '/', libtcod.sky, 'Sword (+{})'.format(bonus))
+        Equippable(EquipmentSlots.MAIN_HAND, power_bonus=bonus).add_to_entity(self)
 
 class Shield(Entity):
-    def __init__(self, x, y):
-        super().__init__(x, y, '[', libtcod.orange, 'Shield')
-        Equippable(EquipmentSlots.OFF_HAND, defense_bonus=1).add_to_entity(self)
+    def __init__(self, x, y, bonus=1):
+        super().__init__(x, y, '[', libtcod.orange, 'Shield (+{})'.format(bonus))
+        Equippable(EquipmentSlots.OFF_HAND, defense_bonus=bonus).add_to_entity(self)
 
 class FireballScroll(Entity):
     def __init__(self, x, y):
@@ -54,3 +56,9 @@ class Chalice(Entity):
     def __init__(self, x, y):
         super().__init__(x, y, 'y', libtcod.violet, 'Magic Chalice', render_order=RenderOrder.ITEM)
         Item(use_function=item_functions.rub_chalice).add_to_entity(self)
+
+def sword_class(bonus):
+    return partial(Sword, bonus=bonus)
+
+def shield_class(bonus):
+    return partial(Shield, bonus=bonus)

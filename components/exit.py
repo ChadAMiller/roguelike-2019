@@ -48,6 +48,8 @@ class UpStairsExit(Exit):
     def take_exit(self, player, message_log):
         if not self.taken_with_chalice and any(item.name == 'Magic Chalice' for item in player.inventory.items):
             self.taken_with_chalice = True
+            player.fighter.heal(player.fighter.max_hp // 5)
+            message_log.add_message(Message('You feel energized by the Chalice.'))
             next_upstairs = self.next_floor.find_entity(lambda e: e.name == "Stairs (Up)")
             if next_upstairs:
                 self.next_floor.entities.append(monsters.Necromancer(next_upstairs.x, next_upstairs.y))

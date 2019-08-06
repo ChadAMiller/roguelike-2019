@@ -57,7 +57,7 @@ class Wraith(Monster):
 
 class Snake(Monster):
     def __init__(self, x, y):
-        super().__init__(x, y, 's', libtcod.dark_green, 'Snake', blocks=True, render_order=RenderOrder.ACTOR)
+        super().__init__(x, y, 'S', libtcod.darkest_green, 'Snake', blocks=True, render_order=RenderOrder.ACTOR)
 
         # It has no power because it poisons you. Poison effect is in the AI.
         Fighter(hp=20, defense=11, power=0, hit=0, xp=50).add_to_entity(self)
