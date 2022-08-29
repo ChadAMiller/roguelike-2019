@@ -7,4 +7,4 @@ This is a learning project shared for discussion purposes. I've made practically
 
 [Reddit link](https://old.reddit.com/r/roguelikedev/wiki/python_tutorial_series)
 
-[My blog](https://projectwirehead.home.blog/)
+[Blog series on my changes](https://projectwirehead.home.blog/2019/07/02/roguelike-tutorial-week-2-sanding-some-edges/)
